@@ -1,0 +1,289 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      PointCloudLayer - toggle renderers | Sample | ArcGIS Maps SDK for
+      JavaScript 4.26
+    </title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #paneDiv {
+        padding: 12px;
+        background-color: white;
+      }
+
+ 
+.slider {
+  margin: 20px 0;
+  height: 40px;
+  width: 95%;
+}
+
+.title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.26/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.26/"></script>
+
+    <script>
+    require([
+  "esri/Map",
+  "esri/views/SceneView",
+  "esri/layers/PointCloudLayer",
+  "esri/smartMapping/renderers/color",
+  "esri/smartMapping/renderers/type",
+  "esri/widgets/Legend",
+  "esri/widgets/Slider" // Add this line
+], (
+  Map,
+  SceneView,
+  PointCloudLayer,
+  colorRendererCreator,
+  typeRendererCreator,
+  Legend,
+  Slider // Add this line
+) => {
+        // Create Point Cloud Layer
+        const pcLayer = new PointCloudLayer({
+          url: "https://tiles.arcgis.com/tiles/z2tnIkrLQ2BRzr6P/arcgis/rest/services/USGSNYC_2014_LiDAR/SceneServer?cacheKey=8de45bcac24fc5c6"
+        });
+
+        // Create Map and View
+        const map = new Map({
+  basemap: "satellite",
+  ground: "world-elevation"
+});
+        const view = new SceneView({
+  container: "viewDiv",
+  map: map,
+  camera: {
+    heading: 210,
+    tilt: 78,
+    position: {
+      x: -8235641, // Manhattan longitude in Web Mercator coordinates
+      y: 4971064, // Manhattan latitude in Web Mercator coordinates
+      z: 50.7,
+      spatialReference: {
+        wkid: 3857
+      }
+    }
+  },
+    // Set the background color of the SceneView
+    environment: {
+    background: {
+      type: "color",
+      color: [0, 0, 0, 1], // RGBA values for black
+    },
+    starsEnabled: false,
+    atmosphereEnabled: false,
+  },
+});
+
+
+        view.ui.add("paneDiv", "bottom-left");
+        view.ui.add(
+          new Legend({
+            view: view
+          }),
+          "bottom-right"
+        );
+
+        const selectedPointsSize = 5;
+const pointsizeSlider = new Slider({
+  container: "point-size-slider",
+  min: 1,
+  max: 15,
+  values: [selectedPointsSize],
+  steps: 0.5,
+  snapOnClickEnabled: false,
+  visibleElements: {
+    labels: true,
+    rangeLabels: true
+  }
+});
+// Watch for changes on the sliders and update the renderer according to the new values
+pointsizeSlider.on(["thumb-change", "thumb-drag"], pointsizeValueChanged);
+function pointsizeValueChanged(event) {
+  const newRenderer = pcLayer.renderer.clone();
+  newRenderer.pointSizeAlgorithm = {
+    type: "fixed-size",
+    useRealWorldSymbolSizes: false,
+    size: event.value
+  };
+  pcLayer.renderer = newRenderer;
+}
+
+
+// Create slider for points per inch
+const selectedPointsPerInch = 5;
+const pointsperinchSlider = new Slider({
+  container: "points-per-inch-slider",
+  min: 1,
+  max: 100,
+  values: [selectedPointsPerInch],
+  steps: 1,
+  snapOnClickEnabled: false,
+  visibleElements: {
+    labels: true,
+    rangeLabels: true
+  }
+});
+// Watch for changes on the sliders and update the renderer according to the new values
+pointsperinchSlider.on(["thumb-change", "thumb-drag"], pointsperinchValueChanged);
+function pointsperinchValueChanged(event) {
+  const newRenderer = pcLayer.renderer.clone();
+  newRenderer.pointsPerInch = event.value;
+  pcLayer.renderer = newRenderer;
+}
+
+
+        // stores generated renderers to avoid making service
+        // calls for the same renderer multiple times
+        const renderersByField = {
+          RGB: null,
+          CLASS_CODE: null,
+          ELEVATION: null,
+          INTENSITY: null
+        };
+
+        /**
+         * Generates renderers based on the input field name. There are four
+         * valid input field names: RGB, CLASS_CODE, ELEVATION, and INTENSITY
+         */
+        function getRenderer(fieldName) {
+          // If the renderer is already generated, then return it
+          if (renderersByField[fieldName]) {
+            return Promise.resolve(renderersByField[fieldName]);
+          }
+
+          // Store the generated renderer in a predefined object in
+          // case it is requested in the future and return the renderer
+          function responseCallback(response) {
+            renderersByField[fieldName] = response.renderer;
+            return response.renderer;
+          }
+
+          if (fieldName === "RGB") {
+            return colorRendererCreator
+              .createPCTrueColorRenderer({
+                layer: pcLayer
+              })
+              .then(responseCallback);
+          }
+          if (fieldName === "CLASS_CODE") {
+            return typeRendererCreator
+              .createPCClassRenderer({
+                layer: pcLayer,
+                field: fieldName
+              })
+              .then(responseCallback);
+          }
+          if (fieldName === "ELEVATION" || "INTENSITY") {
+  return colorRendererCreator.createPCContinuousRenderer({
+    layer: pcLayer,
+    field: fieldName,
+    colorRamp: esri.renderer.colorRamps.yellowBlue
+  }).then(responseCallback);
+}
+        }
+
+        /******************************************************************
+         *
+         * Display point cloud layer using different renderers
+         *
+         ******************************************************************/
+         const customColorRamp = {
+  type: "algorithmic",
+  fromColor: [255, 255, 0], // Start color: Yellow (in RGB format)
+  toColor: [255, 0, 0], // End color: Red (in RGB format)
+  algorithm: "linear"
+};
+
+        view.when(() => {
+          // Generate RGB renderer when view is ready and
+          // assign the renderer to the point cloud layer
+          getRenderer("RGB")
+            .then((renderer) => {
+              pcLayer.renderer = renderer;
+              map.add(pcLayer);
+            })
+            .catch(console.error);
+
+          const radios = document.getElementsByName("renderer");
+          // Handle change events on radio buttons to switch to the correct renderer
+          for (let i = 0; i < radios.length; i++) {
+            radios[i].addEventListener("change", (event) => {
+              const fieldName = event.target.value;
+              getRenderer(fieldName)
+                .then((renderer) => {
+                  pcLayer.renderer = renderer;
+                })
+                .catch(console.error);
+            });
+          }
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <div id="paneDiv" class="esri-widget">
+        <div class="title">Customize point cloud layer:</div>
+<div>Point size:</div>
+<div id="point-size-slider" class="slider"></div>
+<div>Points per inch:</div>
+<div id="points-per-inch-slider" class="slider"></div>
+      <p>Visualize point cloud using:</p>
+      <input type="radio" name="renderer" value="RGB" id="RGB" checked /><label
+        for="RGB"
+      >
+        Original point cloud scan color (Point Cloud RGB Renderer)</label
+      ><br />
+      <input
+        type="radio"
+        name="renderer"
+        value="CLASS_CODE"
+        id="CLASS_CODE"
+      /><label for="CLASS_CODE">
+        LAS classification (Point Cloud Unique Values Renderer)</label
+      ><br />
+      <input
+        type="radio"
+        name="renderer"
+        value="ELEVATION"
+        id="ELEVATION"
+      /><label for="ELEVATION">
+        Elevation mapped on a continuous color scheme (Point Cloud Stretch
+        Renderer)</label
+      ><br />
+      <input
+        type="radio"
+        name="renderer"
+        value="INTENSITY"
+        id="INTENSITY"
+      /><label for="INTENSITY">
+        A classification based on intensity values (Point Cloud Stretch
+        Renderer)</label
+      ><br />
+    </div>
+  </body>
+</html>

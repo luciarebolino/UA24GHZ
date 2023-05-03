@@ -1,0 +1,225 @@
+.subheading {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .content {
+    font-size: 16px;
+  }
+  
+  .subheading {
+    box-shadow: 0vh 0vh 0.8vh rgb(0, 255, 255);
+    background: rgb(0, 255, 255);
+    /* font-size: 2.3vh; */
+    padding-left: 0vh;
+    line-height: 1;
+    z-index: 100;
+    cursor: pointer;
+    display: inline-block;
+    height: 3vh;
+    width: 100%;
+    position: relative;
+    /* margin-right: 0.5vh; */
+    align-content: center;
+  
+    
+}
+
+.subheading a {
+    display: inline-block;
+    font-family: neue-haas-unica, 'Noto Sans KR', sans-serif !important;
+    font-weight: 400;
+    font-style: normal;
+    text-decoration: none;
+    color: #101010 !important;
+    text-decoration: none;
+    line-height: 1;
+    margin-left: 1vh;
+    font-size: 1.8vh;
+    height: 2.8vh;
+    pointer-events: all;
+    border-radius: 0.2vh;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0.5vh;
+    
+}
+
+body {
+  padding: 0;
+  overflow-y: auto;
+  
+}
+
+
+/* .header {
+  display: inline-block;
+} */
+
+/* .info {
+  margin: 10px;
+} */
+
+.filters {
+  width: 50vw;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* border: 1px solid #ccc; */
+}
+
+.grid-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-container svg {
+  /* Apply the styling to the SVG element */
+  display: block;
+  position: absolute;
+  /* z-index: 100; */
+  width: 100%;
+  height: 100%;
+}
+
+.big-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 50%;
+  width: 50%;
+}
+
+.grid-item {
+  fill: white;
+  stroke: blue;
+  stroke-width: 1px;
+}
+
+.grid-item .content {
+  background-color: #010101;
+}
+
+.grid-item.mobile {
+  background-color: #4CAF50;
+}
+
+.grid-item.passive {
+  background-color: #2196F3;
+}
+
+
+.color-box {
+  display: inline-block;
+  width: 2vh;
+  height: 2vh;
+  margin-top: 0.5vh;
+
+  /* border: 1px solid black; */
+}
+
+.color-legend {
+  display: inline-block;
+  float: right;
+}
+
+button{
+  background-color: rgba(255, 255, 255, 0);
+  color: black;
+  border: 1px solid #000000; /* Green */
+  font-family:neue-haas-unica, 'Noto Sans KR', sans-serif !important;
+  font-size: 1.5vh;
+  border-radius: 20px ;
+  text-align: center; /* Center the text horizontally */
+  line-height: 18px; /* Same as the button height to center text vertically */
+}
+
+#zoomOut {
+
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: black;
+    text-align: center; /* Center the text horizontally */
+    line-height: 18px; /* Same as the button height to center text vertically */
+  }
+
+
+#zoomOut:hover {
+  background-color: #000000; /* Change this to your desired hover color */
+  color: white; /* Change this to your desired text color on hover */
+}
+
+#zoomIn {
+
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: black;
+  text-align: center; /* Center the text horizontally */
+  line-height: 18px; /* Same as the button height to center text vertically */
+}
+
+#zoomIn:hover {
+  background-color: #000000; /* Change this to your desired hover color */
+  color: white; /* Change this to your desired text color on hover */
+}
+
+select{
+  font-size: 2.2vh;
+  background-color: rgba(255, 255, 255, 0);
+  color: black;
+  border: 1px solid #000000; /* Green */
+  font-family:neue-haas-unica, 'Noto Sans KR', sans-serif !important;
+  font-size: 1.5vh;
+  border-radius: 20px ;
+  text-align: center; /* Center the text horizontally */
+  line-height: 18px; /* Same as the button height to center text vertically */
+}
+
+.lang_wrap>div:hover,
+/* .maintitle a:hover, */
+.people_hover {
+    /* opacity: 0.5; */
+    background: #000000;
+}
+
+.lang_wrap div {
+    background: rgb(0, 0, 0);
+    border-radius: 50%;
+    width: 2.4vh !important;
+    height: 2.4vh !important;
+    position: absolute;
+    float: right;
+    line-height: 2.3 !important;
+    top: 0.3vh;
+    /* right: 0; */
+    /* font-size: 2.5vh !important; */
+    text-align: center;
+    /* float: left; */
+    font-size: 2vh !important;
+    pointer-events: all !important
+}
+.lang_wrap {
+    z-index: 1000000000 !important;
+    position: absolute;
+    /* right: 4vh; */
+    top: 0;
+    /* top: 0; */
+    z-index: 10;
+    display: flex;
+    text-transform: uppercase;
+    transform: translateZ(100000vh);
+    left: calc(100vw - 7vh);
+}
+.lang_wrap>div {
+    cursor: pointer;
+}

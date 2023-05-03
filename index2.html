@@ -1,0 +1,504 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+
+    </title>
+
+    <style>
+          
+     body {
+    margin: 0;
+    margin: 0;
+    padding: 0;
+    background-color: black;
+    font-size: 1.8vh;
+}
+
+/* .container-globe{
+    position:fixed;
+} */
+     
+      #viewDiv {
+        position:relative;
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 0;
+      }
+
+      #viewDiv2 {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+
+      #dataViz {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  width: 100%;
+  max-height: 94vh;
+  background-color: rgb(0, 0, 0);
+  z-index: 1;
+  transition: top 1s ease; /* Add smooth transition animation */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  
+}
+
+
+.maintitle {
+    box-shadow: 0vh 0vh 0.8vh rgb(0, 255, 0);
+    background: rgb(0, 255, 0);
+    font-size: 2.3vh;
+    padding-left: 0vh;
+    line-height: 1;
+    
+    z-index: 10000000;
+    cursor: pointer;
+    display: inline-block;
+    height: 3vh;
+    width: 100%;
+    position: relative;
+    margin-right: 0.5vh;
+
+    position: fixed;
+    top: 0
+}
+
+.maintitle a,
+.maintitle span {
+    display: inline-block;
+    font-family: neue-haas-unica, 'Noto Sans KR', sans-serif !important;
+    font-weight: 400;
+    font-style: normal;
+    text-decoration: none;
+    color: #101010 !important;
+    text-decoration: none;
+    line-height: 1;
+
+    margin-left: 1vh;
+    font-size: 1.8vh;
+    height: 2.8vh;
+    pointer-events: all;
+    border-radius: 0.2vh;
+    margin-top: 0.5vh;
+    
+}
+
+
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="main.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="dataViz.css"
+    />
+    <script src="dataVizColor.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://js.arcgis.com/4.26/"></script>
+    <script src="https://developers.arcgis.com/javascript/latest/sample-code/satellites-3d/live/satellite.js"></script>
+    <script src="dataMapOld.js"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/SceneView",
+        "esri/layers/MediaLayer",
+        "esri/layers/support/VideoElement",
+        "esri/layers/support/ExtentAndRotationGeoreference",
+        "esri/widgets/LayerList",
+        "esri/geometry/Extent",
+        "esri/widgets/Slider",
+        "esri/layers/GraphicsLayer",
+        "esri/Graphic",
+        "esri/request",
+      ], (
+        Map,
+        SceneView,
+        MediaLayer,
+        VideoElement,
+        ExtentAndRotationGeoreference,
+        LayerList,
+        Extent,
+        Slider,
+        GraphicsLayer,
+        Graphic,
+        esriRequest
+      ) => {
+        
+
+        // create a video element by setting video param to point to the video file url
+        // set the geographic location of the video file on the map using an extent
+        const element = new VideoElement({
+          video: "animation2.mp4",
+          georeference: new ExtentAndRotationGeoreference({
+    extent: new Extent({
+      xmin: -180, // Update the xmin value
+      ymin: -90,  // Update the ymin value
+      xmax: 180,  // Update the xmax value
+      ymax: 90,   // Update the ymax value
+      spatialReference: {
+        wkid: 4326
+      }
+    })
+  })
+});
+
+        // add the video element to the media layer
+        const layer = new MediaLayer({
+          source: [element],
+
+        });
+
+          const map = new Map({
+          basemap: {
+            portalItem: {
+              id: "eb303185d14e45e9be8bbbc1c0daf7ab"
+            }
+          },
+          layers: [layer]
+        });
+
+        const view = new SceneView({
+  container: "viewDiv",
+  map: map,
+  constraints: {
+    altitude: {
+      max: 12000000000 // meters
+    }
+  },
+  popup: {
+    dockEnabled: true,
+    dockOptions: {
+      breakpoint: false
+    }
+  },
+  environment: {
+    lighting: {
+      directShadowsEnabled: false },
+    background: {
+      color: [0, 0, 0, 0] // RGBA values for black color
+    },
+    starsEnabled: false, // Disable stars
+    atmosphereEnabled: false, // Disable atmosphere
+   
+  },
+  ui: {
+    components: [] // Remove all default UI components, including the Attribution widget and navigation icons
+  }
+});
+
+
+        view.popup.watch("selectedFeature", () => {
+          satelliteTracks.removeAll();
+        });
+
+        view.popup.on("trigger-action", (event) => {
+          if (event.action.id === "track") {
+            satelliteTracks.removeAll();
+
+            let graphic = view.popup.selectedFeature;
+            let trackFeatures = [];
+
+            for (let i = 0; i < 60 * 24; i++) {
+              let loc = null;
+              try {
+                loc = getSatelliteLocation(
+                  new Date(graphic.attributes.time + i * 1000 * 60),
+                  graphic.attributes.line1,
+                  graphic.attributes.line2
+                );
+              } catch (error) {}
+
+              if (loc !== null) {
+                trackFeatures.push([loc.x, loc.y, loc.z]);
+              }
+            }
+
+            let track = new Graphic({
+              geometry: {
+                type: "polyline", // autocasts as new Polyline()
+                paths: [trackFeatures]
+              },
+              symbol: {
+                type: "line-3d", // autocasts as new LineSymbol3D()
+                symbolLayers: [
+                  {
+                    type: "line", // autocasts as new LineSymbol3DLayer()
+                    material: {
+                      color: [0, 255, 0, 0.5]
+                    },
+                    size: 3
+                  }
+                ]
+              }
+            });
+
+            satelliteTracks.add(track);
+          }
+        });
+
+        const satelliteLayer = new GraphicsLayer();
+        const satelliteTracks = new GraphicsLayer();
+
+        map.addMany([satelliteLayer, satelliteTracks]);
+
+        // request the satallite data from hosted site
+        let url =
+          "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle";
+          
+
+        esriRequest(url, {
+          responseType: "text"
+        }).then(function (response) {
+          // The requested data
+          const txt = response.data;
+
+          // Parse the satellite TLE data
+          const lines = txt.split("\n");
+          const count = (lines.length / 3).toFixed(0);
+
+          for (let i = 0; i < count; i++) {
+            let commonName = lines[i * 3 + 0];
+            let line1 = lines[i * 3 + 1];
+            let line2 = lines[i * 3 + 2];
+            let time = Date.now();
+
+            /*************************************************
+             * Create attributes for the International
+             * designator and Norad identifier. See the
+             * doc for details.
+             * https://www.space-track.org/documentation#/tle
+             *************************************************/
+
+            const designator = line1.substring(9, 16);
+            const launchYear = designator.substring(0, 2);
+            const fullLaunchYear =
+              Number(launchYear) >= 57 ? `19${launchYear}` : `20${launchYear}`;
+            const launchNum = Number(designator.substring(2, 5)).toString();
+            const noradId = Number(line1.substring(3, 7));
+            let satelliteLoc = null;
+
+            try {
+              satelliteLoc = getSatelliteLocation(new Date(time), line1, line2);
+            } catch (error) {}
+
+            if (satelliteLoc !== null) {
+              
+              
+                let template = {
+                // autocasts as new PopupTemplate()
+                title: "{name}",
+                content: "Launch number {number} of {year}",
+                actions: [
+                  {
+                    // Create a popup action to display the satellite track.
+                    className: "custom-circle-icon", // Use the custom CSS class
+                    title: "TRACK",
+                    id: "track",
+                   
+                  }
+                ]
+              };
+
+
+              function getSatelliteStyle(satelliteName) {
+  if (satelliteName.includes("GOES")) {
+    return {
+      color: [0, 255, 0],
+      size: 3,
+      outlineWidth: 6
+    };
+  } else if (satelliteName.includes("NOAA")) {
+    return {
+      color: [0, 255, 0],
+      size: 3,
+      outlineWidth: 6
+    }; // Blue color and bigger size for NOAA satellites
+  } else {
+    return {
+      color: [255, 255, 255],
+      size: 1,
+      outlineWidth: 3
+    }; // Default white color and smaller size for other satellites
+  }
+}
+
+let satelliteStyle = getSatelliteStyle(commonName);
+
+
+
+
+  let graphic = new Graphic({
+  geometry: satelliteLoc,
+  symbol: {
+  type: "simple-marker",
+  color: satelliteStyle.color,
+  size: satelliteStyle.size,
+  outline: {
+    color: satelliteStyle.color,
+    width: satelliteStyle.outlineWidth
+  },
+  // Add a halo effect to the marker symbol
+  haloSize: 20,
+  haloColor: [satelliteStyle[0], satelliteStyle[1], satelliteStyle[2], 0.2] // You can adjust the halo color and opacity
+},
+  attributes: {
+    name: commonName,
+    year: fullLaunchYear,
+    id: noradId,
+    number: launchNum,
+    time: time,
+    line1: line1,
+    line2: line2
+  },
+  popupTemplate: template
+});
+satelliteLayer.add(graphic);
+            }
+          }
+        });
+
+        function getSatelliteLocation(date, line1, line2) {
+          /****************************************************
+           * satellite-js is a library that includes a set of
+           * functions to convert TLE to geographic locations
+           * We use this to get the geographic location of the
+           * satellites for the current date. For more details
+           * on satellite-js visib the github repo
+           * https://github.com/shashwatak/satellite-js
+           ****************************************************/
+          const satrec = satellite.twoline2satrec(line1, line2);
+          const position_and_velocity = satellite.propagate(
+            satrec,
+            date.getUTCFullYear(),
+            date.getUTCMonth() + 1,
+            date.getUTCDate(),
+            date.getUTCHours(),
+            date.getUTCMinutes(),
+            date.getUTCSeconds()
+          );
+          const position_eci = position_and_velocity.position;
+
+          const gmst = satellite.gstime_from_date(
+            date.getUTCFullYear(),
+            date.getUTCMonth() + 1,
+            date.getUTCDate(),
+            date.getUTCHours(),
+            date.getUTCMinutes(),
+            date.getUTCSeconds()
+          );
+
+          const position_gd = satellite.eci_to_geodetic(position_eci, gmst);
+
+          let longitude = position_gd.longitude;
+          let latitude = position_gd.latitude;
+          let height = position_gd.height;
+          if (isNaN(longitude) || isNaN(latitude) || isNaN(height)) {
+            return null;
+          }
+          const rad2deg = 180 / Math.PI;
+          while (longitude < -Math.PI) {
+            longitude += 2 * Math.PI;
+          }
+          while (longitude > Math.PI) {
+            longitude -= 2 * Math.PI;
+          }
+          return {
+            type: "point", // Autocasts as new Point()
+            x: rad2deg * longitude,
+            y: rad2deg * latitude,
+            z: height * 1000
+          };
+        }
+      });
+
+
+      $(document).ready(function(){
+        $(".lang_wrap").click(function(){
+            var dataVizTop = $("#dataViz").css("top");
+            var threeVhInPx = parseFloat(window.innerHeight) * 3 / 100;
+            if (Math.abs(parseFloat(dataVizTop) - threeVhInPx) < 1) {
+                $("#dataViz").css("top", "100%");
+            } else {
+                $("#dataViz").css("top", "3vh");
+            }
+        });
+    
+    });
+    </script>
+   
+  </head>
+
+  <body>
+    <div class="content" style="margin-top: 0px;">
+      <span class="maintitle">
+        <a href="index.html"> CRITICAL ZONE</a>
+        <div class="lang_wrap">
+          <div class="lang lang_en"></div>
+      </div>
+      </span>
+      <div class="container-globe">
+        <div id="viewDiv">
+            
+        </div>
+      </div>
+      <div id="dataViz">
+        <div class="column-spectrum">
+            <div class="subheading">
+              <a for="spectrum-select">RADIO</a>
+              <select id="spectrum-select">
+                <option value="showAll">SPECTRUM</option>
+                <option value="MOBILE">GROUND</option>
+                <option value="EARTH EXPLORATION-SATELLITE (PASSIVE)">ATMOSPHERE</option>
+              </select>
+              <button id="zoomIn">+</button>
+              <button id="zoomOut">-</button>
+              <button id="customZoom">24GHz</button>
+              <label for="region-select" class="header"></label>
+                <select id="region-select" class="header">
+                  <option value="data.csv">ITU REGION 1</option>
+                  <option value="data2.csv">ITU REGION 2</option>
+                  <option value="data3.csv">ITU REGION 3</option>
+                </select>
+              <div class="color-legend"></div>
+              <a class="info"></a>
+              </div>
+            <div class="filters">
+              <div class="container">
+                  <div class="grid-container"></div>
+              </div> 
+              <div class="big-image-container"></div> 
+            </div>
+
+            
+          </div>
+          <div class="column-map">
+            <span class="subheading"><a>INTERFERENCE</a></span>
+            <div id="viewDiv2">
+         
+              
+            </div>
+          </div>
+      </div>
+     
+    </div>
+  </body>
+</html>

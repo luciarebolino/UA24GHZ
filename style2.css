@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 2.05vh;
+    font-family: neue-haas-unica, 'Noto Sans KR', sans-serif !important;
+    font-weight: 400;
+    font-style: normal;
+    color: #101010 !important;
+    word-break: keep-all;
+    box-sizing: border-box;
+    line-height: 1.28;
+}
+
+body {
+    overflow-x: hidden;
+    background: black;
+    width: 100vw;
+    height: auto;
+    position: relative;
+}
+
+.content {
+    background: #ffffff;
+    overflow: hidden;
+    width: 100vw;
+
+    
+    left: 0;
+    top: 0;
+
+    
+    /*padding-left: 3.5vw;
+    padding-right: 3.5vw;*/
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    top: 0;
+    /* padding-top: 1vw;
+    padding-top: 5vh; */
+}
+
+.container-globe {
+
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; /* set the height of the container to 100% of viewport height */
+    z-index: -1; /* This is to make sure the video-container stays behind other content */
+}
+
+
+a{text-decoration: none;}
+.maintitle {
+    box-shadow: 0vh 0vh 0.5vh rgb(0, 255, 0);
+    background: rgb(0, 255, 0);
+    font-size: 2.3vh;
+    padding-left: 0vh;
+    line-height: 1;
+    
+    z-index: 10000000;
+    cursor: pointer;
+    display: inline-block;
+    height: 3vh;
+    width: 100%;
+    position: relative;
+    margin-right: 0.5vh;
+    position: fixed;
+    top: 0
+}
+.maintitle-vertical {
+    box-shadow: 0vh 0vh 0.5vh rgb(0, 255, 0);
+    background: rgb(0, 255, 0);
+    font-size: 2.3vh;
+    padding-left: 0vh;
+    line-height: 1;
+    
+    z-index: 10000000;
+    cursor: pointer;
+    display: inline-block;
+    height: 100%;;
+    width: 3vh;
+    position: relative;
+   
+    position: fixed;
+    top: 0
+}
+
+.maintitle a,
+.maintitle span {
+   
+  
+    line-height: 1;
+    margin-top: 0.1vh;
+    margin-left: 1vh;
+    font-size: 2.2vh;
+    height: 2.8vh;
+    pointer-events: all;
+    border-radius: 0.2vh;
+}
+
+.titlebar {
+    width: 10vw;
+    line-height: 1;
+    background: white;
+    margin-top: 0.2vh;
+    margin-left: 4vh;
+}
+
+.lang_wrap>div:hover,
+/* .maintitle a:hover, */
+.people_hover {
+    /* opacity: 0.5; */
+    background: #000000;
+}
+
+.lang_wrap div {
+    background: rgb(0, 0, 0);
+    border-radius: 50%;
+    width: 2.4vh !important;
+    height: 2.4vh !important;
+    position: absolute;
+    float: right;
+    line-height: 2.3 !important;
+    top: 0.3vh;
+    right: 0;
+    /* font-size: 2.5vh !important; */
+    text-align: center;
+    /* float: left; */
+    font-size: 2vh !important;
+    pointer-events: all !important
+}
+.lang_wrap {
+    z-index: 1000000000 !important;
+    position: absolute;
+    /* right: 4vh; */
+    top: 0;
+    /* top: 0; */
+    z-index: 10;
+    display: flex;
+    text-transform: uppercase;
+    transform: translateZ(100000vh);
+    left: calc(100vw - 7vh);
+}
+.lang_wrap>div {
+    cursor: pointer;
+}
