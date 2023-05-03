@@ -393,6 +393,15 @@
     -moz-osx-font-smoothing: grayscale
 }
 
+.esri-popup__header-buttons,
+.esri-feature,
+.esri-popup__navigation
+.esri-popup__header-container--button {
+  display: none !important;
+}
+
+
+
 .esri-icon-close:before {
     content: "";
     color: inherit
